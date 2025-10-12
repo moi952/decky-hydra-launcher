@@ -1,9 +1,6 @@
 name: Build
 
-on:
-  workflow_dispatch:
-  push:
-    branches: [main]
+on: pull_request
 
 jobs:
   build:
@@ -32,11 +29,9 @@ jobs:
       - name: cli-build (.vscode/build.sh)
         run: ./.vscode/build.sh
 
-      - name: Release
-        uses: softprops/action-gh-release@v2
+      - name: Create artifact
+        uses: actions/upload-artifact@v4
         with:
-          draft: true
-          files: |
-            out/Hydra.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: Hydra.zip
+          path: |
+            dist/Hydra.zip

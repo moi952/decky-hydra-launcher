@@ -4,20 +4,18 @@ import type { FriendGameSession } from "../../generated/envelope";
 import { api } from "../../hydra-api";
 import { composeToastLogo } from "../../helpers";
 import type { UserProfile } from "./types";
-import type { GameStats } from "../../api-types";
+import type { GameAssets } from "../../api-types";
 
 export const friendGameSessionEvent = async (payload: FriendGameSession) => {
-  const [friend, gameStats] = await Promise.all([
+  const [friend, gameAssets] = await Promise.all([
     api.get<UserProfile>(`users/${payload.friendId}`).json(),
-    api
-      .get<GameStats>(`games/stats?objectId=${payload.objectId}&shop=steam`)
-      .json(),
+    api.get<GameAssets>(`games/steam/${payload.objectId}/assets`).json(),
   ]);
 
-  if (friend && gameStats) {
+  if (friend && gameAssets) {
     toaster.toast({
       title: `${friend.displayName} started playing`,
-      body: gameStats.assets.title,
+      body: gameAssets.title,
       logo: composeToastLogo(friend.profileImageUrl),
     });
   }
