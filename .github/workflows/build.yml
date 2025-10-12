@@ -23,11 +23,8 @@ jobs:
 
       - uses: pnpm/action-setup@v4
 
-      - name: depsetup (.vscode/setup.sh)
-        run: ./.vscode/setup.sh
-
       - name: pnpm install
-        run: which pnpm && pnpm i
+        run: pnpm install --frozen-lockfile
 
       - name: Update Decky Frontend Library (@decky/ui)
         run: pnpm update @decky/ui --latest
