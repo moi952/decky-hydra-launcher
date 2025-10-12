@@ -1,13 +1,13 @@
 import { create } from "zustand";
-import type { GameStats } from "../api-types";
+import type { GameAssets } from "../api-types";
 
 interface CurrentGameStore {
   objectId: string | null;
   remoteId: string | null;
-  gameStats: GameStats | null;
+  gameAssets: GameAssets | null;
   startedAt: Date | null;
   elapsedTimeInMillis: number;
-  setGameStats: (gameStats: GameStats) => void;
+  setGameAssets: (gameAssets: GameAssets) => void;
   clearGame: () => void;
   setStartedAt: (startedAt: Date) => void;
   setElapsedTimeInMillis: (elapsedTimeInMillis: number) => void;
@@ -18,15 +18,15 @@ interface CurrentGameStore {
 export const useCurrentGame = create<CurrentGameStore>((set) => ({
   objectId: null,
   remoteId: null,
-  gameStats: null,
+  gameAssets: null,
   startedAt: null,
   elapsedTimeInMillis: 0,
-  setGameStats: (gameStats) => set({ gameStats }),
+  setGameAssets: (gameAssets) => set({ gameAssets }),
   clearGame: () =>
     set({
       objectId: null,
       remoteId: null,
-      gameStats: null,
+      gameAssets: null,
       startedAt: null,
       elapsedTimeInMillis: 0,
     }),

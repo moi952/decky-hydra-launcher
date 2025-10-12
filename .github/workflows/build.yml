@@ -1,0 +1,59 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Ensure scripts are executable
+        run: chmod +x .vscode/*.sh || true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.18.0
+          cache: "pnpm"
+
+      - uses: pnpm/action-setup@v4
+
+      - name: depsetup (.vscode/setup.sh)
+        run: ./.vscode/setup.sh
+
+      - name: pnpm install
+        run: which pnpm && pnpm i
+
+      - name: Update Decky Frontend Library (@decky/ui)
+        run: pnpm update @decky/ui --latest
+
+      - name: settingscheck (.vscode/config.sh)
+        shell: bash
+        run: |
+          set +e
+          ./.vscode/config.sh
+          code=$?
+          set -e
+          if [ "$code" -eq 1 ]; then
+            echo "::warning::.vscode/settings.json was created with defaults."
+            echo "::warning::Edit .vscode/settings.json to match your Deck, then rerun the workflow."
+            exit 1
+          fi
+
+      - name: cli-build (.vscode/build.sh)
+        run: ./.vscode/build.sh
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: |
+            out/Hydra.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -9,7 +9,7 @@ import {
 import { api } from "./hydra-api";
 import { usePlaytime } from "./hooks";
 import { HydraLogo } from "./components/hydra-logo";
-import type { GameStats } from "./api-types";
+import type { GameAssets } from "./api-types";
 
 export function Home() {
   const { user, hasActiveSubscription } = useUserStore();
@@ -18,20 +18,17 @@ export function Home() {
 
   const { setRoute } = useNavigationStore();
 
-  const { objectId, gameStats, setGameStats } = useCurrentGame();
+  const { objectId, gameAssets, setGameAssets } = useCurrentGame();
 
   const getGameCurrentlyPlaying = useCallback(async () => {
-    const searchParams = new URLSearchParams({
-      objectId: objectId!,
-      shop: "steam",
-    });
-
-    const stats = await api
-      .get<GameStats>(`games/stats?${searchParams.toString()}`)
+    const asssets = await api
+      .get<GameAssets | null>(`games/steam/${objectId}`)
       .json();
 
-    setGameStats(stats);
-  }, [objectId, setGameStats]);
+    if (asssets) {
+      setGameAssets(asssets);
+    }
+  }, [objectId, setGameAssets]);
 
   useEffect(() => {
     if (objectId) {
@@ -44,9 +41,9 @@ export function Home() {
       return (
         <Button className="game-cover">
           <img
-            src={gameStats?.assets.coverImageUrl}
+            src={gameAssets?.coverImageUrl}
             className="game-cover__image"
-            alt={gameStats?.assets.title}
+            alt={gameAssets?.title}
           />
 
           <div className="playtime">
@@ -78,7 +75,7 @@ export function Home() {
         </span>
       </div>
     );
-  }, [gameStats, objectId, hours, minutes, seconds]);
+  }, [gameAssets, objectId, hours, minutes, seconds]);
 
   return (
     <>

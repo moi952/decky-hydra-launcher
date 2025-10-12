@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "@decky/rollup": "^1.0.1",
-    "@decky/ui": "^4.10.0",
+    "@decky/ui": "^4.10.6",
     "@eslint/js": "^9.28.0",
     "@protobuf-ts/plugin": "^2.10.0",
     "@protobuf-ts/runtime": "^2.10.0",

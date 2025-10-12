@@ -15,12 +15,15 @@ export interface Auth {
   tokenExpirationTimestamp: number;
 }
 
-export interface GameStats {
-  assets: {
-    title: string;
-    coverImageUrl: string;
-    iconUrl: string;
-  };
+export interface GameAssets {
+  objectId: string;
+  shop: string;
+  title: string;
+  iconUrl: string;
+  libraryHeroImageUrl: string;
+  libraryImageUrl: string;
+  logoImageUrl: string;
+  coverImageUrl: string;
 }
 
 export interface Game {
