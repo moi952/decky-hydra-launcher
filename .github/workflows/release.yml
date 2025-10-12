@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Ensure scripts are executable
+        run: chmod +x .vscode/*.sh || true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.20
+
+      - uses: pnpm/action-setup@v4
+
+      - name: pnpm install
+        run: pnpm install --frozen-lockfile
+
+      - name: setup (.vscode/setup.sh)
+        run: ./.vscode/setup.sh
+
+      - name: cli-build (.vscode/build.sh)
+        run: ./.vscode/build.sh
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: |
+            out/Hydra.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
