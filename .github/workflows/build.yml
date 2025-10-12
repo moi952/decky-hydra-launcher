@@ -26,8 +26,8 @@ jobs:
       - name: pnpm install
         run: pnpm install --frozen-lockfile
 
-      - name: Update Decky Frontend Library (@decky/ui)
-        run: pnpm update @decky/ui --latest
+      - name: setup (.vscode/setup.sh)
+        run: ./.vscode/setup.sh
 
       - name: cli-build (.vscode/build.sh)
         run: ./.vscode/build.sh
