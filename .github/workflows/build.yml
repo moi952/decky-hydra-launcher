@@ -29,19 +29,6 @@ jobs:
       - name: Update Decky Frontend Library (@decky/ui)
         run: pnpm update @decky/ui --latest
 
-      - name: settingscheck (.vscode/config.sh)
-        shell: bash
-        run: |
-          set +e
-          ./.vscode/config.sh
-          code=$?
-          set -e
-          if [ "$code" -eq 1 ]; then
-            echo "::warning::.vscode/settings.json was created with defaults."
-            echo "::warning::Edit .vscode/settings.json to match your Deck, then rerun the workflow."
-            exit 1
-          fi
-
       - name: cli-build (.vscode/build.sh)
         run: ./.vscode/build.sh
 
