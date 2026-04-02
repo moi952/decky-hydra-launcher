@@ -55,6 +55,7 @@ struct Game {
     icon_url: Option<String>,
     wine_prefix_path: Option<String>,
     automatic_cloud_sync: Option<bool>,
+    executable_path: Option<String>,
 }
 
 fn get_leveldb_snapshot() -> Snapshot {
@@ -81,6 +82,26 @@ fn get_leveldb_snapshot() -> Snapshot {
     }
 }
 
+pub fn delete_download(shop: &str, object_id: &str) -> Result<(), String> {
+    let db_path = dirs::config_dir()
+        .unwrap()
+        .join("hydralauncher")
+        .join("hydra-db");
+
+    // abstract-level sublevel key format: !<sublevel>!<key>
+    let key = format!("!downloads!{}:{}", shop, object_id);
+
+    let mut db = DB::open(&db_path, Options::default())
+        .map_err(|e| format!("Failed to open LevelDB: {}", e))?;
+
+    db.delete(key.as_bytes())
+        .map_err(|e| format!("Failed to delete key: {}", e))?;
+
+    db.close().map_err(|e| format!("Failed to close LevelDB: {}", e))?;
+
+    Ok(())
+}
+
 pub fn get_auth() -> String {
     let mut snapshot = get_leveldb_snapshot();
 
@@ -92,6 +113,43 @@ pub fn get_auth() -> String {
     snapshot.db.close().unwrap();
 
     auth
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Download {
+    pub shop: String,
+    pub object_id: String,
+    pub folder_name: Option<String>,
+    pub progress: f64,
+    pub bytes_downloaded: f64,
+    pub file_size: Option<f64>,
+    pub status: Option<String>,
+    pub extracting: bool,
+    pub extraction_progress: f64,
+    pub queued: bool,
+}
+
+pub fn get_downloads() -> String {
+    let mut snapshot = get_leveldb_snapshot();
+    let mut iter = snapshot.db.new_iter().unwrap();
+    let mut downloads = Vec::new();
+
+    while let Some((key_bytes, value_bytes)) = iter.next() {
+        let key = String::from_utf8(key_bytes).unwrap();
+        if key.starts_with("!downloads") {
+            let raw = String::from_utf8(value_bytes).unwrap();
+            if let Ok(download) = serde_json::from_str::<Download>(&raw) {
+                let status = download.status.as_deref();
+                if !matches!(status, Some("removed")) {
+                    downloads.push(download);
+                }
+            }
+        }
+    }
+
+    snapshot.db.close().unwrap();
+    serde_json::to_string(&downloads).unwrap()
 }
 
 pub fn get_library() -> String {
