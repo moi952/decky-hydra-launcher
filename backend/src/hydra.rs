@@ -82,6 +82,46 @@ fn get_leveldb_snapshot() -> Snapshot {
     }
 }
 
+pub fn update_game_steam_shortcut(shop: &str, object_id: &str, steam_shortcut_app_id: u32) -> Result<(), String> {
+    let db_path = dirs::config_dir()
+        .unwrap()
+        .join("hydralauncher")
+        .join("hydra-db");
+
+    let key = format!("!games!{}:{}", shop, object_id);
+
+    let mut db = DB::open(&db_path, Options::default())
+        .map_err(|e| format!("Failed to open LevelDB: {}", e))?;
+
+    let value = db.get(key.as_bytes())
+        .ok_or_else(|| format!("Game not found: {}", key))?;
+
+    let mut game: serde_json::Value = serde_json::from_slice(&value)
+        .map_err(|e| format!("Failed to parse game: {}", e))?;
+
+    game["steamShortcutAppId"] = serde_json::json!(steam_shortcut_app_id);
+
+    // Only set winePrefixPath if the game doesn't already have one
+    if game["winePrefixPath"].is_null() {
+        let home = dirs::home_dir().unwrap();
+        let wine_prefix = home
+            .join(".local/share/Steam/steamapps/compatdata")
+            .join(steam_shortcut_app_id.to_string())
+            .join("pfx");
+        game["winePrefixPath"] = serde_json::json!(wine_prefix.to_str().unwrap());
+    }
+
+    let updated = serde_json::to_vec(&game)
+        .map_err(|e| format!("Failed to serialize game: {}", e))?;
+
+    db.put(key.as_bytes(), &updated)
+        .map_err(|e| format!("Failed to write game: {}", e))?;
+
+    db.close().map_err(|e| format!("Failed to close LevelDB: {}", e))?;
+
+    Ok(())
+}
+
 pub fn delete_download(shop: &str, object_id: &str) -> Result<(), String> {
     let db_path = dirs::config_dir()
         .unwrap()

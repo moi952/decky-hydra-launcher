@@ -166,6 +166,19 @@ class Plugin:
             decky.logger.error(f"[Hydra] Failed to start {executable}: {e}")
             return {"success": False, "error": f"Failed to start: {e}"}
 
+    async def update_game_steam_shortcut(self, shop: str, object_id: str, app_id: int):
+        try:
+            args = [BACKEND_PATH, "update-game-steam-shortcut", shop, object_id, str(app_id)]
+            result = subprocess.run(args, capture_output=True, text=True, timeout=5)
+            if result.returncode == 0:
+                return {"success": True}
+            error = result.stderr.strip()
+            decky.logger.error(f"[Hydra] update-game-steam-shortcut failed: {error}")
+            return {"success": False, "error": error}
+        except Exception as e:
+            decky.logger.error(f"[Hydra] update_game_steam_shortcut error: {e}")
+            return {"success": False, "error": str(e)}
+
     async def dismiss_download(self, shop: str, object_id: str):
         try:
             result = subprocess.run(

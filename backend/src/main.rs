@@ -1,5 +1,5 @@
 use ludusavi::{get_backup_preview, check_if_ludusavi_binary_exists};
-use hydra::{get_auth, get_library, get_downloads, delete_download, upload_save_game, download_game_artifact};
+use hydra::{get_auth, get_library, get_downloads, delete_download, update_game_steam_shortcut, upload_save_game, download_game_artifact};
 
 mod ludusavi;
 mod hydra;
@@ -20,6 +20,18 @@ async fn main() {
         "get-downloads" => {
             let downloads = get_downloads();
             println!("{}", downloads);
+        }
+        "update-game-steam-shortcut" => {
+            let shop = std::env::args().nth(2).expect("no shop given");
+            let object_id = std::env::args().nth(3).expect("no object_id given");
+            let app_id: u32 = std::env::args().nth(4).expect("no app_id given").parse().expect("invalid app_id");
+            match update_game_steam_shortcut(&shop, &object_id, app_id) {
+                Ok(_) => println!("ok"),
+                Err(e) => {
+                    eprintln!("{}", e);
+                    std::process::exit(1);
+                }
+            }
         }
         "delete-download" => {
             let shop = std::env::args().nth(2).expect("no shop given");

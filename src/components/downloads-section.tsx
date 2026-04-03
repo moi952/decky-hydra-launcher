@@ -3,7 +3,7 @@ import { toaster } from "@decky/api";
 import { useEffect, useRef, useState } from "react";
 import { useLibraryStore } from "../stores";
 import { api } from "../hydra-api";
-import { getDownloads, dismissDownload, getSteamShortcutExePaths } from "../events";
+import { getDownloads, dismissDownload, getSteamShortcutExePaths, updateGameSteamShortcut } from "../events";
 import type { Download, GameAssets, Game } from "../api-types";
 import { DownloadItem } from "./download-item";
 
@@ -116,6 +116,8 @@ export function DownloadsSection() {
     }
 
     setSteamShortcutPaths((prev) => new Set([...prev, executablePath]));
+
+    updateGameSteamShortcut(d.shop, d.objectId, appId).catch(() => {});
 
     if (assets && appId) {
       const artworkPairs: [string | null | undefined, number][] = [
