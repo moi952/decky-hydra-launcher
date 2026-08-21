@@ -1,7 +1,5 @@
-import os
 import subprocess
 import json
-import tempfile
 import decky
 
 PLUGIN_DIR = decky.DECKY_PLUGIN_DIR
@@ -27,6 +25,5 @@ class Plugin:
         return result.stdout.strip() == "true"
 
     async def is_hydra_launcher_running(self):
-        temp_dir = tempfile.gettempdir()
-        lockfile = f"{temp_dir}/hydra-launcher.lock"
-        return os.path.exists(lockfile)
+        result = subprocess.run(["pgrep", "-f", "hydralauncher"], capture_output=True)
+        return result.returncode == 0
