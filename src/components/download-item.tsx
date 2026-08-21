@@ -44,7 +44,7 @@ export function DownloadItem({ download: d, title, iconUrl, executablePath, spee
           {(showAddToSteam || showDismiss) && (
             <Focusable className="download-item__actions" flow-children="horizontal">
               {showAddToSteam && (
-                <Button style={{ minWidth: "unset", width: 28, height: 28, padding: 0, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={onAddToSteam} title="Add to Steam">
+                <Button style={{ minWidth: "unset", width: 28, height: 28, padding: 0, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={onAddToSteam}>
                   <FaPlus size={12} />
                 </Button>
               )}
