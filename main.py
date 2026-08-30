@@ -4,6 +4,7 @@ import os
 import tempfile
 
 import decky
+import steam_emu
 
 PLUGIN_DIR = decky.DECKY_PLUGIN_DIR
 BACKEND_PATH = f"{PLUGIN_DIR}/bin/backend"
@@ -66,3 +67,9 @@ class Plugin:
         temp_dir = tempfile.gettempdir()
         lockfile = f"{temp_dir}/hydra-launcher.lock"
         return os.path.exists(lockfile)
+
+    async def get_steam_emu_ini_settings(self, title: str):
+        return steam_emu.get_settings(title)
+
+    async def set_steam_emu_ini_settings(self, ini_path: str, user_name: str, language: str):
+        return steam_emu.set_settings(ini_path, user_name, language)

@@ -67,6 +67,12 @@ export interface Game {
   isDeleted?: boolean;
 }
 
+export interface SteamEmuIniSettings {
+  iniPath: string;
+  userName: string;
+  language: string;
+}
+
 export interface User {
   id: string;
   username: string;

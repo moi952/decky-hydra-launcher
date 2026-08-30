@@ -14,10 +14,10 @@ import { api } from "./hydra-api";
 import { Home } from "./home";
 import { WSClient } from "./ws";
 import { composeToastLogo } from "./helpers";
-import { GameCloudSaves } from "./game-cloud-saves";
+import { GamePage } from "./game-page";
 import { AuthGuide } from "./auth-guide";
 import { getAuth, getLibrary, isHydraLauncherRunning, syncCloudSave } from "./events";
-import { HydraLogo } from "./components";
+import { BackHandler, HydraLogo } from "./components";
 import type { Game, User } from "./api-types";
 
 function Plugin() {
@@ -42,14 +42,20 @@ function Plugin() {
     switch (route?.name) {
       case "auth-guide":
         return <AuthGuide />;
-      case "game":
-        return <GameCloudSaves game={route.params.game as Game} />;
+      case "game": {
+        const goBack = () => setRoute({ name: "home", params: {} });
+        return (
+          <BackHandler onBack={goBack}>
+            <GamePage game={route.params.game as Game} onBack={goBack} />
+          </BackHandler>
+        );
+      }
       case "home":
         return <Home />;
       default:
         return null;
     }
-  }, [route]);
+  }, [route, setRoute]);
 
   return (
     <>

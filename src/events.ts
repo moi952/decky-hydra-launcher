@@ -4,6 +4,7 @@ import type {
   CloudSaveRestoreResult,
   CloudSaveSyncResult,
   Game,
+  SteamEmuIniSettings,
 } from "./api-types";
 
 export const getAuth = callable<[], Auth>("get_auth");
@@ -26,3 +27,11 @@ export const restoreCloudSave = callable<
   [Auth, string, string | null],
   CloudSaveRestoreResult
 >("restore_cloud_save");
+export const getSteamEmuIniSettings = callable<
+  [string],
+  SteamEmuIniSettings | null
+>("get_steam_emu_ini_settings");
+export const setSteamEmuIniSettings = callable<
+  [string, string, string],
+  { success: boolean; error?: string }
+>("set_steam_emu_ini_settings");
