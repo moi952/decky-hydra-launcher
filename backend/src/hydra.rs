@@ -83,23 +83,64 @@ pub fn get_auth() -> String {
     auth
 }
 
+// Hydra Launcher moved automatic cloud sync to a separate "v2" setting
+// (its own sublevel, keyed the same way as the game record) instead of the
+// automaticCloudSync field on the game itself. For Steam games, an absent
+// v2 setting means enabled by default — see resolveStoredCloudSaveAutomaticSyncMode
+// in Hydra Launcher's own source. The legacy field is only meaningful for
+// non-Steam shops, which this plugin doesn't otherwise deal with.
+const CLOUD_SAVE_AUTOMATIC_SYNC_SETTINGS_PREFIX: &str = "!cloud-save-automatic-sync-settings!";
+
 pub fn get_library() -> String {
     let mut snapshot = get_leveldb_snapshot();
 
     let mut iter = snapshot.db.new_iter().unwrap();
-    let mut library = Vec::new();
+    let mut games = Vec::new();
+    let mut v2_settings: HashMap<String, bool> = HashMap::new();
 
     while let Some((key_bytes, value_bytes)) = iter.next() {
         let key = String::from_utf8(key_bytes).unwrap();
         if key.starts_with("!games") {
             let game: Game = serde_json::from_str(&String::from_utf8(value_bytes).unwrap()).unwrap();
-            library.push(game);
+            games.push(game);
+        } else if let Some(suffix) = key.strip_prefix(CLOUD_SAVE_AUTOMATIC_SYNC_SETTINGS_PREFIX) {
+            if let Ok(enabled) = serde_json::from_slice::<bool>(&value_bytes) {
+                v2_settings.insert(suffix.to_string(), enabled);
+            }
         }
     }
 
     snapshot.db.close().unwrap();
 
-    serde_json::to_string(&library).unwrap()
+    for game in &mut games {
+        let key = format!("{}:{}", game.shop, game.object_id);
+        game.automatic_cloud_sync = Some(if game.shop == "steam" {
+            v2_settings.get(&key).copied().unwrap_or(true)
+        } else {
+            game.automatic_cloud_sync.unwrap_or(false)
+        });
+    }
+
+    serde_json::to_string(&games).unwrap()
+}
+
+pub fn toggle_automatic_cloud_sync(shop: &str, object_id: &str, automatic_cloud_sync: bool) -> Result<(), String> {
+    let db_path = dirs::config_dir()
+        .unwrap()
+        .join("hydralauncher")
+        .join("hydra-db");
+
+    let key = format!("{}{}:{}", CLOUD_SAVE_AUTOMATIC_SYNC_SETTINGS_PREFIX, shop, object_id);
+
+    let mut db = DB::open(&db_path, Options::default())
+        .map_err(|e| format!("Failed to open DB: {:?}", e))?;
+
+    db.put(key.as_bytes(), serde_json::to_string(&automatic_cloud_sync).unwrap().as_bytes())
+        .map_err(|e| format!("Failed to write to DB: {:?}", e))?;
+
+    db.close().map_err(|e| format!("Failed to close DB: {:?}", e))?;
+
+    Ok(())
 }
 
 fn restore_ludusavi_backup(

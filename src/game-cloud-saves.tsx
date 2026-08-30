@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "./hydra-api";
 import { toaster } from "@decky/api";
-import { Button, ConfirmModal, PanelSection, Spinner, showModal } from "@decky/ui";
+import { Button, ConfirmModal, PanelSection, PanelSectionRow, Spinner, ToggleField, showModal } from "@decky/ui";
 import { composeToastLogo, formatBytes } from "./helpers";
 import { useAuthStore, useCurrentGame, useUserStore } from "./stores";
-import { restoreCloudSave, syncCloudSave } from "./events";
-import { CheckIcon, CloudIcon } from "./components";
+import { restoreCloudSave, syncCloudSave, toggleAutomaticCloudSync } from "./events";
+import { CloudIcon } from "./components";
 import { useDate } from "./hooks";
 import { GameCloudSave } from "./game-cloud-save";
 import type { CloudSaveSnapshotSummary, Game, GameArtifact } from "./api-types";
@@ -21,6 +21,9 @@ export function GameCloudSaves({ game }: GameCloudSavesProps) {
     null
   );
   const [artifacts, setArtifacts] = useState<GameArtifact[]>([]);
+  const [automaticCloudSync, setAutomaticCloudSync] = useState(
+    game.automaticCloudSync
+  );
 
   const { auth, setAuth } = useAuthStore();
   const { hasActiveSubscription } = useUserStore();
@@ -155,6 +158,23 @@ export function GameCloudSaves({ game }: GameCloudSavesProps) {
     setAuth,
   ]);
 
+  const handleToggleAutomaticCloudSync = useCallback(
+    async (value: boolean) => {
+      try {
+        await toggleAutomaticCloudSync(game.shop, game.objectId, value);
+        setAutomaticCloudSync(value);
+      } catch (error: unknown) {
+        console.error(error);
+
+        toaster.toast({
+          title: "Failed to update automatic cloud sync",
+          body: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    },
+    [game.shop, game.objectId]
+  );
+
   const confirmRestore = useCallback(() => {
     showModal(
       <ConfirmModal
@@ -184,14 +204,6 @@ export function GameCloudSaves({ game }: GameCloudSavesProps) {
             >
               {game.title}
             </span>
-
-            {game.automaticCloudSync && (
-              <div className="game-cloud-saves__automatic-backups">
-                <CheckIcon />
-
-                <span>Automatic backups enabled</span>
-              </div>
-            )}
           </div>
         </div>
 
@@ -208,6 +220,17 @@ export function GameCloudSaves({ game }: GameCloudSavesProps) {
             : "No cloud save snapshot found for this game yet."}
         </span>
       </div>
+
+      {canSync && (
+        <PanelSectionRow>
+          <ToggleField
+            label="Automatic cloud sync"
+            description="Back up this game's save automatically when it closes"
+            checked={automaticCloudSync}
+            onChange={handleToggleAutomaticCloudSync}
+          />
+        </PanelSectionRow>
+      )}
 
       <div className="game-cloud-saves__cloud-saves">
         <Button

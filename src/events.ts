@@ -26,3 +26,6 @@ export const restoreCloudSave = callable<
   [Auth, string, string | null],
   CloudSaveRestoreResult
 >("restore_cloud_save");
+export const toggleAutomaticCloudSync = callable<[string, string, boolean], void>(
+  "toggle_automatic_cloud_sync"
+);

@@ -62,6 +62,9 @@ class Plugin:
         result = await _run_backend(["restore-cloud-save", object_id, wine_prefix or ""], json.dumps(auth))
         return json.loads(result)
 
+    async def toggle_automatic_cloud_sync(self, shop: str, object_id: str, automatic_cloud_sync: bool):
+        await _run_backend(["toggle-automatic-cloud-sync", shop, object_id, str(automatic_cloud_sync).lower()])
+
     async def is_hydra_launcher_running(self):
         temp_dir = tempfile.gettempdir()
         lockfile = f"{temp_dir}/hydra-launcher.lock"
